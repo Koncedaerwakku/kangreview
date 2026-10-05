@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Link & QR Code NFC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans">
+
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-xl p-6 sm:p-8 border border-slate-200">
+        
+        <div class="text-center mb-6">
+            <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl shadow-inner">
+                <i class="fa-solid fa-qrcode"></i>
+            </div>
+            <h1 class="text-2xl font-black text-slate-800">Generate Link & QR Code</h1>
+            <p class="text-slate-500 text-sm mt-1">Buat link khusus kartu NFC & QR Code untuk Klien</p>
+        </div>
+
+        <!-- Form Inputs -->
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nama Toko / Cafe / Bisnis</label>
+                <input type="text" id="shop-name" placeholder="Contoh: Kopi Kenangan" class="w-full p-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-slate-50">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nomor WhatsApp Owner (Awalan 62 atau 08)</label>
+                <input type="text" id="wa-number" placeholder="Contoh: 08123456789" class="w-full p-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-slate-50">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Link Google Review Klien</label>
+                <input type="url" id="google-url" placeholder="https://g.page/r/..." class="w-full p-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-slate-50">
+            </div>
+
+            <button onclick="generateData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2 text-base">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Link & QR Code
+            </button>
+        </div>
+
+        <!-- Hasil Generator (Hidden by default) -->
+        <div id="result-area" class="hidden mt-8 border-t border-slate-200 pt-6 space-y-6">
+            
+            <!-- Link Output -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Hasil Link Utuh Kartu NFC:</label>
+                <div class="flex gap-2">
+                    <input type="text" id="generated-link" readonly class="w-full p-3 bg-slate-100 rounded-xl border border-slate-300 text-xs font-mono text-slate-700 focus:outline-none">
+                    <button onclick="copyLink()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-3 rounded-xl font-bold text-xs transition flex items-center gap-1 active:scale-95 shrink-0">
+                        <i class="fa-regular fa-copy"></i> Salin
+                    </button>
+                </div>
+            </div>
+
+            <!-- QR Code Container -->
+            <div class="text-center">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">QR Code Siap Cetak:</label>
+                
+                <div class="p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl inline-block shadow-inner">
+                    <!-- Tempat Render QR JS -->
+                    <div id="qrcode" class="flex justify-center"></div>
+                </div>
+
+                <div class="mt-4">
+                    <button onclick="downloadQR()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-download"></i> Download Gambar QR Code (PNG)
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        let qrcodeObj = null;
+
+        function generateData() {
+            const shop = document.getElementById('shop-name').value.trim();
+            let wa = document.getElementById('wa-number').value.trim();
+            const g = document.getElementById('google-url').value.trim();
+
+            if (!shop || !wa || !g) {
+                alert('Mohon isi semua kolom terlebih dahulu!');
+                return;
+            }
+
+            // Normalisasi nomor WA (ubah 08 menjadi 62)
+            if (wa.startsWith('0')) {
+                wa = '62' + wa.substring(1);
+            }
+
+            // Ambil domain utama web kamu secara otomatis
+            const baseUrl = window.location.origin;
+            const fullLink = `${baseUrl}/?toko=${encodeURIComponent(shop)}&wa=${encodeURIComponent(wa)}&g=${encodeURIComponent(g)}`;
+
+            // Tampilkan Link
+            document.getElementById('generated-link').value = fullLink;
+
+            // Generate QR Code lokal pakai Library qrcode.js (paling aman & stabil)
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = ""; // Clear QR sebelumnya
+
+            qrcodeObj = new QRCode(qrContainer, {
+                text: fullLink,
+                width: 256,
+                height: 256,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('result-area').classList.remove('hidden');
+        }
+
+        function copyLink() {
+            const copyText = document.getElementById("generated-link");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value);
+            alert("Link berhasil disalin!");
+        }
+
+        function downloadQR() {
+            const qrContainer = document.getElementById('qrcode');
+            const img = qrContainer.querySelector('img');
+            const canvas = qrContainer.querySelector('canvas');
+
+            let imageSrc = "";
+
+            if (canvas) {
+                imageSrc = canvas.toDataURL("image/png");
+            } else if (img) {
+                imageSrc = img.src;
+            }
+
+            if (!imageSrc) {
+                alert("QR Code belum siap, silakan coba lagi.");
+                return;
+            }
+
+            const shopName = document.getElementById('shop-name').value.trim() || 'QR_Code';
+            const fileName = `QRCode_${shopName.replace(/[^a-zA-Z0-0]/g, "_")}.png`;
+
+            // Proses Download File Gambar PNG
+            const link = document.createElement('a');
+            link.href = imageSrc;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
