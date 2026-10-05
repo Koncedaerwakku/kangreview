@@ -1,70 +1,58 @@
-// 1. Ambil data parameter dari URL
-const urlParams = new URLSearchParams(window.location.search);
-const toko = urlParams.get('toko') || 'Toko Kami';
-const wa = urlParams.get('wa') || ''; // Bisa kosong jika owner tidak isi WA
-const googleUrl = urlParams.get('g') || '';
+<script>
+        // 1. Ambil data parameter dari URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const toko = urlParams.get('toko') || 'Toko Kami';
+        const wa = urlParams.get('wa') || ''; 
+        const googleUrl = urlParams.get('g') || '';
 
-let currentRating = 5; // Default bintang 5 saat pertama dimuat
+        let currentRating = 5;
 
-// 2. Tampilkan Nama Toko di HTML jika ada elemen id="store-name"
-document.addEventListener('DOMContentLoaded', () => {
-    const storeNameElem = document.getElementById('store-name');
-    if (storeNameElem) {
-        storeNameElem.innerText = decodeURIComponent(toko);
-    }
-});
-
-// 3. Fungsi saat bintang diklik oleh pelanggan
-function setRating(rating) {
-    currentRating = rating;
-    
-    // (Opsional) Update teks label petunjuk jika ada elemen id="rating-label"
-    const textLabel = document.getElementById('rating-label');
-    if (textLabel) {
-        if (rating >= 4) {
-            textLabel.innerText = "Sangat Memuaskan! 😍";
-        } else {
-            textLabel.innerText = "Ada keluhan atau masukan? 😔";
-        }
-    }
-}
-
-// 4. Fungsi Utama saat Tombol "Kirim Ulasan" diklik
-function submitReview() {
-    // Ambil isi teks pesan dari textarea/input (id="review-message")
-    const messageElem = document.getElementById('review-message');
-    const pesanInput = messageElem ? messageElem.value.trim() : '';
-
-    if (currentRating >= 4) {
-        // --- SKENARIO BINTANG 4 & 5 (PUAS) ---
-        if (googleUrl && googleUrl !== '#') {
-            // Langsung arahkan ke Google Review Klien
-            window.location.href = decodeURIComponent(googleUrl);
-        } else {
-            alert("Terima kasih banyak atas ulasan positif Anda!");
-        }
-    } else {
-        // --- SKENARIO BINTANG 1, 2, & 3 (KURANG PUAS) ---
-        // Cek apakah nomor WA Owner diisi saat aktivasi
-        if (wa && wa.trim() !== '' && wa !== 'null' && wa !== 'undefined') {
-            // JIKA WA ADA -> Arahkan ke WhatsApp Owner
-            let cleanWA = wa.trim().replace(/[^0-9]/g, ''); // Bersihkan karakter non-angka
-            
-            // Format nomor ke internasional (jika diawali '0', ubah ke '62')
-            if (cleanWA.startsWith('0')) {
-                cleanWA = '62' + cleanWA.slice(1);
+        // 2. Tampilkan Nama Toko
+        document.addEventListener('DOMContentLoaded', () => {
+            const storeNameElem = document.getElementById('store-name');
+            if (storeNameElem) {
+                storeNameElem.innerText = decodeURIComponent(toko);
             }
+        });
 
-            const pesanWA = `Halo ${decodeURIComponent(toko)},\n\nSaya ingin menyampaikan masukan/keluhan (Rating: ${currentRating}/5):\n"${pesanInput}"`;
-            const linkWA = `https://wa.me/${cleanWA}?text=${encodeURIComponent(pesanWA)}`;
-            
-            window.location.href = linkWA;
-        } else {
-            // JIKA WA KOSONG (Pilihan A) -> Tampilkan pesan terima kasih di layar & tahan agar tidak masuk Google Review
-            alert("Terima kasih atas masukan dan saran yang Anda berikan untuk evaluasi layanan kami.");
-            
-            // Bersihkan form setelah kirim
-            if (messageElem) messageElem.value = '';
+        // 3. Fungsi Bintang
+        function setRating(rating) {
+            currentRating = rating;
+            const textLabel = document.getElementById('rating-label');
+            if (textLabel) {
+                if (rating >= 4) {
+                    textLabel.innerText = "Sangat Memuaskan! 😍";
+                } else {
+                    textLabel.innerText = "Ada keluhan atau masukan? 😔";
+                }
+            }
         }
-    }
-}
+
+        // 4. Fungsi Kirim Ulasan
+        function submitReview() {
+            const messageElem = document.getElementById('review-message');
+            const pesanInput = messageElem ? messageElem.value.trim() : '';
+
+            if (currentRating >= 4) {
+                if (googleUrl && googleUrl !== '#') {
+                    window.location.href = decodeURIComponent(googleUrl);
+                } else {
+                    alert("Terima kasih banyak atas ulasan positif Anda!");
+                }
+            } else {
+                if (wa && wa.trim() !== '' && wa !== 'null' && wa !== 'undefined') {
+                    let cleanWA = wa.trim().replace(/[^0-9]/g, '');
+                    if (cleanWA.startsWith('0')) {
+                        cleanWA = '62' + cleanWA.slice(1);
+                    }
+                    const pesanWA = `Halo ${decodeURIComponent(toko)},\n\nSaya ingin menyampaikan masukan/keluhan (Rating: ${currentRating}/5):\n"${pesanInput}"`;
+                    window.location.href = `https://wa.me/${cleanWA}?text=${encodeURIComponent(pesanWA)}`;
+                } else {
+                    alert("Terima kasih atas masukan dan saran yang Anda berikan untuk evaluasi layanan kami.");
+                    if (messageElem) messageElem.value = '';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
