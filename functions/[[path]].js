@@ -133,8 +133,4 @@ export async function onRequest(context) {
           validLogin = true;
         } else if (env && env.KANGREVIEW_KV) {
           try {
-            const savedResellerStr = await env.KANGREVIEW_KV.get("reseller_" + username);
-            if (savedResellerStr) {
-              const resellerData = JSON.parse(savedResellerStr);
-              if (resellerData.password === password) {
-                validLogin =
+            const savedResellerStr = await env.KANGREVIEW_KV.get("res
