@@ -5,13 +5,11 @@ export async function onRequest(context) {
     const path = url.pathname;
     const cookieHeader = request.headers.get('Cookie') || '';
 
-    // Helper sederhana untuk baca cookie sesi
     function getCookie(name) {
       const match = cookieHeader.match(new RegExp('(^| )' + name + '=([^;]+)'));
       return match ? match[2] : null;
     }
 
-    // 1. HALAMAN REVIEW KLIEN (/r/id_kartu)
     if (path.startsWith('/r/')) {
       const parts = path.split('/');
       const cardId = parts[2] ? parts[2].trim() : '';
@@ -107,4 +105,36 @@ export async function onRequest(context) {
                   });
               }
               document.getElementById('submit-feedback').addEventListener('click', function() {
-                  const comment = document.getElementById('review
+                  const comment = document.getElementById('review-comment').value.trim();
+                  if (ownerWhatsApp) {
+                      const message = encodeURIComponent("Halo Kak, saya memberikan rating " + selectedRating + " bintang.\\nMasukan: " + (comment || "(Tanpa catatan)"));
+                      let waNumber = ownerWhatsApp.replace(/^0/, '62');
+                      window.location.href = "https://wa.me/" + waNumber + "?text=" + message;
+                  } else {
+                      alert('Terima kasih banyak atas masukan berharga Anda!');
+                      location.reload();
+                  }
+              });
+          </script>
+      </body>
+      </html>`;
+      return new Response(html, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
+    }
+
+    if (path === '/reseller-login') {
+      let errorMsg = '';
+      if (request.method === 'POST') {
+        const formData = await request.formData();
+        const username = formData.get('username') ? formData.get('username').trim() : '';
+        const password = formData.get('password') ? formData.get('password').trim() : '';
+        
+        let validLogin = false;
+        if (username === 'admin' && password === 'admin123') {
+          validLogin = true;
+        } else if (env && env.KANGREVIEW_KV) {
+          try {
+            const savedResellerStr = await env.KANGREVIEW_KV.get("reseller_" + username);
+            if (savedResellerStr) {
+              const resellerData = JSON.parse(savedResellerStr);
+              if (resellerData.password === password) {
+                validLogin =
