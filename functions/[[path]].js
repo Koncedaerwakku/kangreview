@@ -100,9 +100,9 @@ export async function onRequest(context) {
                 }
 
                 if (ownerWhatsApp) {
-                    const message = encodeURIComponent(\`Halo Kak, saya memberikan rating \${selectedRating} bintang.\\nMasukan: \${comment}\`);
+                    const message = encodeURIComponent("Halo Kak, saya memberikan rating " + selectedRating + " bintang.\nMasukan: " + comment);
                     let waNumber = ownerWhatsApp.replace(/^0/, '62');
-                    window.location.href = \`https://wa.me/\${waNumber}?text=\${message}\`;
+                    window.location.href = "https://wa.me/" + waNumber + "?text=" + message;
                 } else {
                     alert('Terima kasih atas masukan Anda!');
                     location.reload();
@@ -148,7 +148,7 @@ export async function onRequest(context) {
             <h1 class="text-xl font-bold mb-1">Portal Reseller</h1>
             <p class="text-slate-400 text-sm mb-6">Aktivasi Kartu Klien</p>
             
-            \${alertMessage ? \`<div class="bg-emerald-900/50 border border-emerald-500 text-emerald-200 text-sm p-3 rounded-xl mb-4 break-all">\${alertMessage}</div>\` : ''}
+            ${alertMessage ? `<div class="bg-emerald-900/50 border border-emerald-500 text-emerald-200 text-sm p-3 rounded-xl mb-4 break-all">${alertMessage}</div>` : ''}
 
             <form method="POST" class="space-y-4">
                 <div>
