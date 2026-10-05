@@ -28,96 +28,67 @@ export async function onRequest(context) {
       const card = cardDataStr ? JSON.parse(cardDataStr) : {
         name: "Review Bisnis",
         greview: "https://google.com",
-        whatsapp: ""
+        whatsapp: "",
+        logo: ""
       };
 
-      const html = `<!DOCTYPE html>
-      <html lang="id">
-      <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Ulasan - ${card.name}</title>
-          <script src="https://cdn.tailwindcss.com"></script>
-          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-      </head>
-      <body class="bg-slate-100 text-slate-800 min-h-screen flex items-center justify-center p-4">
-          <div class="max-w-md w-full bg-white rounded-3xl shadow-xl p-6 border border-slate-200 text-center">
-              <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-4 shadow-sm">
-                  <i class="fa-solid fa-face-smile"></i>
-              </div>
-              <h1 class="text-xl font-bold mb-1 text-slate-900">${card.name}</h1>
-              <p class="text-slate-500 text-xs mb-6">5 detik masukan dari kamu berharga banget buat meningkatkan kualitas layanan kami 😊</p>
-              <div id="rating-section">
-                  <div class="flex justify-center gap-2 mb-2 text-3xl cursor-pointer" id="star-container">
-                      <i class="far fa-star text-amber-400" data-rating="1"></i>
-                      <i class="far fa-star text-amber-400" data-rating="2"></i>
-                      <i class="far fa-star text-amber-400" data-rating="3"></i>
-                      <i class="far fa-star text-amber-400" data-rating="4"></i>
-                      <i class="far fa-star text-amber-400" data-rating="5"></i>
-                  </div>
-                  <p id="rating-text" class="text-xs font-semibold text-amber-500 mb-6 h-5"></p>
-              </div>
-              <div id="feedback-form" class="hidden text-left mt-2">
-                  <label class="block text-xs font-semibold text-slate-600 mb-1">Tulis kesan / pesan kamu (Opsional):</label>
-                  <textarea id="review-comment" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-sm text-slate-800 focus:outline-none focus:border-blue-500 mb-4" placeholder="Tulis masukan di sini..."></textarea>
-                  <button id="submit-feedback" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-2xl transition shadow-lg">Kirim Ulasan</button>
-              </div>
-          </div>
-          <script>
-              const stars = document.querySelectorAll('#star-container i');
-              const ratingText = document.getElementById('rating-text');
-              const feedbackForm = document.getElementById('feedback-form');
-              const ratingSection = document.getElementById('rating-section');
-              const ownerWhatsApp = "${card.whatsapp || ''}";
-              const googleReviewUrl = "${card.greview || '#'}";
-              let selectedRating = 0;
-              const ratingLabels = { 1: "Kurang Memuaskan 😞", 2: "Cukup 😐", 3: "Biasa Saja 🙂", 4: "Puas! 😊", 5: "Sangat Memuaskan! 😍" };
-              stars.forEach(star => {
-                  star.addEventListener('mouseover', function() {
-                      highlightStars(this.dataset.rating);
-                      ratingText.innerText = ratingLabels[this.dataset.rating];
-                  });
-                  star.addEventListener('mouseout', function() {
-                      highlightStars(selectedRating);
-                      ratingText.innerText = selectedRating ? ratingLabels[selectedRating] : "";
-                  });
-                  star.addEventListener('click', function() {
-                      selectedRating = parseInt(this.dataset.rating);
-                      highlightStars(selectedRating);
-                      ratingText.innerText = ratingLabels[selectedRating];
-                      if (selectedRating >= 4) {
-                          setTimeout(() => { window.location.href = googleReviewUrl; }, 400);
-                      } else {
-                          setTimeout(() => {
-                              ratingSection.classList.add('hidden');
-                              feedbackForm.classList.remove('hidden');
-                          }, 400);
-                      }
-                  });
-              });
-              function highlightStars(val) {
-                  stars.forEach(s => {
-                      if (s.dataset.rating <= val) {
-                          s.classList.remove('far'); s.classList.add('fas');
-                      } else {
-                          s.classList.remove('fas'); s.classList.add('far');
-                      }
-                  });
-              }
-              document.getElementById('submit-feedback').addEventListener('click', function() {
-                  const comment = document.getElementById('review-comment').value.trim();
-                  if (ownerWhatsApp) {
-                      const message = encodeURIComponent("Halo Kak, saya memberikan rating " + selectedRating + " bintang.\\nMasukan: " + (comment || "(Tanpa catatan)"));
-                      let waNumber = ownerWhatsApp.replace(/^0/, '62');
-                      window.location.href = "https://wa.me/" + waNumber + "?text=" + message;
-                  } else {
-                      alert('Terima kasih banyak atas masukan berharga Anda!');
-                      location.reload();
-                  }
-              });
-          </script>
-      </body>
-      </html>`;
+      const logoHtml = card.logo 
+        ? '<div class="w-24 h-24 bg-white rounded-3xl mx-auto flex items-center justify-center mb-4 shadow-md overflow-hidden border border-slate-200"><img src="' + card.logo + '" alt="Logo" class="w-full h-full object-cover"></div>'
+        : '<div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl mx-auto flex items-center justify-center text-3xl mb-4 shadow-sm"><i class="fa-solid fa-face-smile"></i></div>';
+
+      const html = '<!DOCTYPE html>' +
+      '<html lang="id">' +
+      '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ulasan - ' + card.name + '</title><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></head>' +
+      '<body class="bg-slate-100 text-slate-800 min-h-screen flex items-center justify-center p-4">' +
+      '<div class="max-w-md w-full bg-white rounded-3xl shadow-xl p-6 border border-slate-200 text-center">' +
+      logoHtml +
+      '<h1 class="text-xl font-bold mb-1 text-slate-900">' + card.name + '</h1>' +
+      '<p class="text-slate-500 text-xs mb-6">5 detik masukan dari kamu berharga banget buat meningkatkan kualitas layanan kami 😊</p>' +
+      '<div id="rating-section"><div class="flex justify-center gap-2 mb-2 text-3xl cursor-pointer" id="star-container">' +
+      '<i class="far fa-star text-amber-400" data-rating="1"></i>' +
+      '<i class="far fa-star text-amber-400" data-rating="2"></i>' +
+      '<i class="far fa-star text-amber-400" data-rating="3"></i>' +
+      '<i class="far fa-star text-amber-400" data-rating="4"></i>' +
+      '<i class="far fa-star text-amber-400" data-rating="5"></i>' +
+      '</div><p id="rating-text" class="text-xs font-semibold text-amber-500 mb-6 h-5"></p></div>' +
+      '<div id="feedback-form" class="hidden text-left mt-2">' +
+      '<label class="block text-xs font-semibold text-slate-600 mb-1">Tulis kesan / pesan kamu (Opsional):</label>' +
+      '<textarea id="review-comment" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-sm text-slate-800 focus:outline-none focus:border-blue-500 mb-4" placeholder="Tulis masukan di sini..."></textarea>' +
+      '<button id="submit-feedback" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-2xl transition shadow-lg">Kirim Ulasan</button>' +
+      '</div></div>' +
+      '<script>' +
+      'const stars = document.querySelectorAll("#star-container i");' +
+      'const ratingText = document.getElementById("rating-text");' +
+      'const feedbackForm = document.getElementById("feedback-form");' +
+      'const ratingSection = document.getElementById("rating-section");' +
+      'const ownerWhatsApp = "' + (card.whatsapp || '') + '";' +
+      'const googleReviewUrl = "' + (card.greview || '#') + '";' +
+      'let selectedRating = 0;' +
+      'const ratingLabels = { 1: "Kurang Memuaskan 😞", 2: "Cukup 😐", 3: "Biasa Saja 🙂", 4: "Puas! 😊", 5: "Sangat Memuaskan! 😍" };' +
+      'stars.forEach(star => {' +
+      '  star.addEventListener("mouseover", function() { highlightStars(this.dataset.rating); ratingText.innerText = ratingLabels[this.dataset.rating]; });' +
+      '  star.addEventListener("mouseout", function() { highlightStars(selectedRating); ratingText.innerText = selectedRating ? ratingLabels[selectedRating] : ""; });' +
+      '  star.addEventListener("click", function() {' +
+      '    selectedRating = parseInt(this.dataset.rating); highlightStars(selectedRating); ratingText.innerText = ratingLabels[selectedRating];' +
+      '    if (selectedRating >= 4) { setTimeout(() => { window.location.href = googleReviewUrl; }, 400); }' +
+      '    else { setTimeout(() => { ratingSection.classList.add("hidden"); feedbackForm.classList.remove("hidden"); }, 400); }' +
+      '  });' +
+      '});' +
+      'function highlightStars(val) {' +
+      '  stars.forEach(s => {' +
+      '    if (s.dataset.rating <= val) { s.classList.remove("far"); s.classList.add("fas"); }' +
+      '    else { s.classList.remove("fas"); s.classList.add("far"); }' +
+      '  });' +
+      '}' +
+      'document.getElementById("submit-feedback").addEventListener("click", function() {' +
+      '  const comment = document.getElementById("review-comment").value.trim();' +
+      '  if (ownerWhatsApp) {' +
+      '    const message = encodeURIComponent("Halo Kak, saya memberikan rating " + selectedRating + " bintang.\\nMasukan: " + (comment || "(Tanpa catatan)"));' +
+      '    let waNumber = ownerWhatsApp.replace(/^0/, "62");' +
+      '    window.location.href = "https://wa.me/" + waNumber + "?text=" + message;' +
+      '  } else { alert("Terima kasih banyak atas masukan berharga Anda!"); location.reload(); }' +
+      '});' +
+      '</script></body></html>';
       return new Response(html, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
     }
 
@@ -190,9 +161,10 @@ export async function onRequest(context) {
         const name = formData.get('name');
         const whatsapp = formData.get('whatsapp');
         const greview = formData.get('greview');
+        const logo = formData.get('logo') ? formData.get('logo').trim() : '';
         
         const cardId = rawCardId ? rawCardId.replace(/[^a-zA-Z0-9_-]/g, '') : Math.random().toString(36).substring(2, 8);
-        const cardData = JSON.stringify({ name, whatsapp, greview, owner: activeUser });
+        const cardData = JSON.stringify({ name, whatsapp, greview, logo, owner: activeUser });
 
         if (env && env.KANGREVIEW_KV) {
           try {
@@ -231,6 +203,7 @@ export async function onRequest(context) {
       '<form method="POST" class="space-y-4">' +
       '<div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">ID / Kode Kartu Unik (Opsional)</label><input type="text" name="cardid" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Kosongkan untuk buat kode acak"></div>' +
       '<div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Nama Bisnis / Toko / Cafe</label><input type="text" name="name" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Contoh: Mesti Coffee"></div>' +
+      '<div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Link URL Gambar Logo / Foto (Opsional)</label><input type="url" name="logo" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="https://i.ibb.co/... atau link gambar langsung"></div>' +
       '<div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Nomor WhatsApp Owner (Opsional)</label><input type="text" name="whatsapp" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="0821..."></div>' +
       '<div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Link Google Review Asli</label><input type="url" name="greview" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="https://g.page/r/..."></div>' +
       '<button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-3 rounded-xl transition">Simpan & Generate QR Code</button>' +
