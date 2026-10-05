@@ -3,156 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generator Link & QR Code NFC</title>
+    <title>Admin - Generator Review Link</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QRCode.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4 font-sans">
 
-    <div class="bg-white w-full max-w-lg rounded-3xl shadow-xl p-6 sm:p-8 border border-slate-200">
-        
+    <div class="bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 p-6 w-full max-w-lg">
         <div class="text-center mb-6">
-            <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl shadow-inner">
-                <i class="fa-solid fa-qrcode"></i>
-            </div>
-            <h1 class="text-2xl font-black text-slate-800">Generate Link & QR Code</h1>
-            <p class="text-slate-500 text-sm mt-1">Buat link khusus kartu NFC & QR Code untuk Klien</p>
+            <h1 class="text-2xl font-bold text-white mb-1"><i class="fa-solid fa-qrcode text-blue-500 mr-2"></i>Generator Link & QR Code</h1>
+            <p class="text-slate-400 text-sm">Buat link khusus kartu NFC & QR Code untuk Klien</p>
         </div>
 
-        <!-- Form Inputs -->
         <div class="space-y-4">
+            <!-- NAMA TOKO -->
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nama Toko / Cafe / Bisnis</label>
-                <input type="text" id="shop-name" placeholder="Contoh: Kopi Kenangan" class="w-full p-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-slate-50">
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Nama Toko / Cafe / Bisnis <span class="text-red-400">*</span></label>
+                <input type="text" id="storeName" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="Contoh: Pusat Buket & Hantaran Kikie">
             </div>
 
+            <!-- NOMOR WA OWNER (OPSIONAL) -->
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nomor WhatsApp Owner (Awalan 62 atau 08)</label>
-                <input type="text" id="wa-number" placeholder="Contoh: 08123456789" class="w-full p-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-slate-50">
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Nomor WhatsApp Owner <span class="text-slate-500 font-normal">(Opsional)</span></label>
+                <input type="text" id="waNumber" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="Awalan 62 atau 08 (Boleh kosongkan jika tanpa WA)">
             </div>
 
+            <!-- LINK GOOGLE REVIEW -->
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Link Google Review Klien</label>
-                <input type="url" id="google-url" placeholder="https://g.page/r/..." class="w-full p-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-slate-50">
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Link Google Review Klien <span class="text-red-400">*</span></label>
+                <input type="url" id="googleUrl" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="https://g.page/r/...">
             </div>
 
-            <button onclick="generateData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2 text-base">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Link & QR Code
+            <!-- BUTTON GENERATE -->
+            <button onclick="generateLink()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition duration-200 mt-2">
+                Generate Link & QR Code
             </button>
         </div>
 
-        <!-- Hasil Generator (Hidden by default) -->
-        <div id="result-area" class="hidden mt-8 border-t border-slate-200 pt-6 space-y-6">
-            
-            <!-- Link Output -->
-            <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Hasil Link Utuh Kartu NFC:</label>
-                <div class="flex gap-2">
-                    <input type="text" id="generated-link" readonly class="w-full p-3 bg-slate-100 rounded-xl border border-slate-300 text-xs font-mono text-slate-700 focus:outline-none">
-                    <button onclick="copyLink()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-3 rounded-xl font-bold text-xs transition flex items-center gap-1 active:scale-95 shrink-0">
-                        <i class="fa-regular fa-copy"></i> Salin
-                    </button>
-                </div>
+        <!-- HASIL GENERATE -->
+        <div id="result-box" class="hidden mt-6 pt-6 border-t border-slate-700 text-center">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Link Hasil Aktivasi:</p>
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="result-url" readonly class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-blue-400 font-mono">
+                <button onclick="copyURL()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-xs font-semibold">Salin</button>
             </div>
 
-            <!-- QR Code Container -->
-            <div class="text-center">
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">QR Code Siap Cetak:</label>
-                
-                <div class="p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl inline-block shadow-inner">
-                    <!-- Tempat Render QR JS -->
-                    <div id="qrcode" class="flex justify-center"></div>
-                </div>
-
-                <div class="mt-4">
-                    <button onclick="downloadQR()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-download"></i> Download Gambar QR Code (PNG)
-                    </button>
-                </div>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">QR Code Tautan:</p>
+            <div class="bg-white p-3 rounded-xl inline-block shadow-md">
+                <div id="qrcode"></div>
             </div>
-
         </div>
-
     </div>
 
     <script>
-        let qrcodeObj = null;
+        function generateLink() {
+            const toko = document.getElementById('storeName').value.trim();
+            const wa = document.getElementById('waNumber').value.trim();
+            const googleUrl = document.getElementById('googleUrl').value.trim();
 
-        function generateData() {
-            const shop = document.getElementById('shop-name').value.trim();
-            let wa = document.getElementById('wa-number').value.trim();
-            const g = document.getElementById('google-url').value.trim();
-
-            if (!shop || !wa || !g) {
-                alert('Mohon isi semua kolom terlebih dahulu!');
+            if (!toko || !googleUrl) {
+                alert("Mohon isi Nama Toko dan Link Google Review terlebih dahulu!");
                 return;
             }
 
-            // Normalisasi nomor WA (ubah 08 menjadi 62)
-            if (wa.startsWith('0')) {
-                wa = '62' + wa.substring(1);
+            const baseUrl = window.location.origin;
+            let finalUrl = `${baseUrl}/?toko=${encodeURIComponent(toko)}&g=${encodeURIComponent(googleUrl)}`;
+            
+            if (wa !== '') {
+                finalUrl += `&wa=${encodeURIComponent(wa)}`;
             }
 
-            // Ambil domain utama web kamu secara otomatis
-            const baseUrl = window.location.origin;
-            const fullLink = `${baseUrl}/?toko=${encodeURIComponent(shop)}&wa=${encodeURIComponent(wa)}&g=${encodeURIComponent(g)}`;
-
-            // Tampilkan Link
-            document.getElementById('generated-link').value = fullLink;
-
-            // Generate QR Code lokal pakai Library qrcode.js (paling aman & stabil)
-            const qrContainer = document.getElementById('qrcode');
-            qrContainer.innerHTML = ""; // Clear QR sebelumnya
-
-            qrcodeObj = new QRCode(qrContainer, {
-                text: fullLink,
-                width: 256,
-                height: 256,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
+            document.getElementById('result-url').value = finalUrl;
+            
+            // Generate QR Code
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), {
+                text: finalUrl,
+                width: 180,
+                height: 180
             });
 
-            document.getElementById('result-area').classList.remove('hidden');
+            document.getElementById('result-box').classList.remove('hidden');
         }
 
-        function copyLink() {
-            const copyText = document.getElementById("generated-link");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(copyText.value);
-            alert("Link berhasil disalin!");
-        }
-
-        function downloadQR() {
-            const qrContainer = document.getElementById('qrcode');
-            const img = qrContainer.querySelector('img');
-            const canvas = qrContainer.querySelector('canvas');
-
-            let imageSrc = "";
-
-            if (canvas) {
-                imageSrc = canvas.toDataURL("image/png");
-            } else if (img) {
-                imageSrc = img.src;
-            }
-
-            if (!imageSrc) {
-                alert("QR Code belum siap, silakan coba lagi.");
-                return;
-            }
-
-            const shopName = document.getElementById('shop-name').value.trim() || 'QR_Code';
-            const fileName = `QRCode_${shopName.replace(/[^a-zA-Z0-0]/g, "_")}.png`;
-
-            // Proses Download File Gambar PNG
-            const link = document.createElement('a');
-            link.href = imageSrc;
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function copyURL() {
+            const urlInput = document.getElementById('result-url');
+            urlInput.select();
+            document.execCommand('copy');
+            alert("Link berhasil disalin ke clipboard!");
         }
     </script>
 </body>
