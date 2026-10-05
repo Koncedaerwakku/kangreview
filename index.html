@@ -1,4 +1,59 @@
-<script>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ulasan Pelanggan</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .star-btn {
+            transition: transform 0.2s, color 0.2s;
+        }
+        .star-btn:active {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 font-sans">
+
+    <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md text-center">
+        <!-- Logo / Icon Header -->
+        <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+            <i class="fa-solid fa-store"></i>
+        </div>
+
+        <!-- Nama Toko Dynamic -->
+        <h1 id="store-name" class="text-2xl font-bold text-gray-800 mb-2">Toko Kami</h1>
+        <p class="text-gray-500 text-sm mb-6">Bagaimana pengalaman Anda berbelanja/layanan kami?</p>
+
+        <!-- Rating Bintang -->
+        <div class="flex justify-center gap-2 mb-4" id="star-container">
+            <button onclick="setRating(1)" class="star-btn text-3xl text-yellow-400"><i class="fa-solid fa-star"></i></button>
+            <button onclick="setRating(2)" class="star-btn text-3xl text-yellow-400"><i class="fa-solid fa-star"></i></button>
+            <button onclick="setRating(3)" class="star-btn text-3xl text-yellow-400"><i class="fa-solid fa-star"></i></button>
+            <button onclick="setRating(4)" class="star-btn text-3xl text-yellow-400"><i class="fa-solid fa-star"></i></button>
+            <button onclick="setRating(5)" class="star-btn text-3xl text-yellow-400"><i class="fa-solid fa-star"></i></button>
+        </div>
+
+        <!-- Label Keterangan Rating -->
+        <p id="rating-label" class="text-sm font-semibold text-blue-600 mb-4">Sangat Memuaskan! 😍</p>
+
+        <!-- Input Pesan / Masukan (Khusus Bintang 1-3) -->
+        <div id="feedback-box" class="mb-5">
+            <textarea id="review-message" rows="3" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-gray-700" placeholder="Tuliskan masukan atau kritik Anda di sini..."></textarea>
+        </div>
+
+        <!-- Tombol Kirim -->
+        <button onclick="submitReview()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition duration-200">
+            Kirim Ulasan
+        </button>
+    </div>
+
+    <!-- SCRIPT LOGIKA -->
+    <script>
         // 1. Ambil data parameter dari URL
         const urlParams = new URLSearchParams(window.location.search);
         const toko = urlParams.get('toko') || 'Toko Kami';
@@ -7,17 +62,20 @@
 
         let currentRating = 5;
 
-        // 2. Tampilkan Nama Toko
+        // 2. Render Nama Toko & Default Bintang
         document.addEventListener('DOMContentLoaded', () => {
             const storeNameElem = document.getElementById('store-name');
             if (storeNameElem) {
                 storeNameElem.innerText = decodeURIComponent(toko);
             }
+            updateStarUI(5);
         });
 
-        // 3. Fungsi Bintang
+        // 3. Update Visual Bintang saat Diklik
         function setRating(rating) {
             currentRating = rating;
+            updateStarUI(rating);
+
             const textLabel = document.getElementById('rating-label');
             if (textLabel) {
                 if (rating >= 4) {
@@ -28,18 +86,31 @@
             }
         }
 
+        function updateStarUI(rating) {
+            const stars = document.querySelectorAll('#star-container button i');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.className = 'fa-solid fa-star text-yellow-400';
+                } else {
+                    star.className = 'fa-regular fa-star text-gray-300';
+                }
+            });
+        }
+
         // 4. Fungsi Kirim Ulasan
         function submitReview() {
             const messageElem = document.getElementById('review-message');
             const pesanInput = messageElem ? messageElem.value.trim() : '';
 
             if (currentRating >= 4) {
-                if (googleUrl && googleUrl !== '#') {
+                // Bintang 4-5 -> Google Review
+                if (googleUrl && googleUrl !== '#' && googleUrl !== '') {
                     window.location.href = decodeURIComponent(googleUrl);
                 } else {
                     alert("Terima kasih banyak atas ulasan positif Anda!");
                 }
             } else {
+                // Bintang 1-3 -> WA jika ada, Alert jika tidak ada
                 if (wa && wa.trim() !== '' && wa !== 'null' && wa !== 'undefined') {
                     let cleanWA = wa.trim().replace(/[^0-9]/g, '');
                     if (cleanWA.startsWith('0')) {
