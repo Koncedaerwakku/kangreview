@@ -3,7 +3,7 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  // 1. HALAMAN KLIEN / REVIEW (/r/id_kartu)
+  // 1. HALAMAN REVIEW KLIEN (/r/id_kartu)
   if (path.startsWith('/r/')) {
     const cardId = path.split('/')[2];
     if (!cardId) return new Response('Kartu tidak ditemukan', { status: 404 });
@@ -14,7 +14,7 @@ export async function onRequest(context) {
     }
 
     const card = cardDataStr ? JSON.parse(cardDataStr) : {
-      name: "Contoh Bisnis",
+      name: "Review Bisnis",
       greview: "https://google.com",
       whatsapp: ""
     };
@@ -60,8 +60,7 @@ export async function onRequest(context) {
 
             stars.forEach(star => {
                 star.addEventListener('mouseover', function() {
-                    const val = this.dataset.rating;
-                    highlightStars(val);
+                    highlightStars(this.dataset.rating);
                 });
                 star.addEventListener('mouseout', function() {
                     highlightStars(selectedRating);
@@ -104,7 +103,8 @@ export async function onRequest(context) {
                     let waNumber = ownerWhatsApp.replace(/^0/, '62');
                     window.location.href = "https://wa.me/" + waNumber + "?text=" + message;
                 } else {
-                    alert('Terima kasih atas masukan Anda!');
+                    // Kamuflase jika WhatsApp tidak diisi/tidak ada
+                    alert('Terima kasih banyak atas masukan berharga Anda!');
                     location.reload();
                 }
             });
@@ -120,14 +120,15 @@ export async function onRequest(context) {
     let resultHtml = '';
     if (request.method === 'POST') {
       const formData = await request.formData();
+      const cardId = formData.get('cardid').trim().replace(/[^a-zA-Z0-9_-]/g, '');
       const name = formData.get('name');
       const whatsapp = formData.get('whatsapp');
       const greview = formData.get('greview');
       
-      const cardId = 'card_' + Math.random().toString(36).substring(2, 8);
       const cardData = JSON.stringify({ name, whatsapp, greview });
 
       if (env.KANGREVIEW_KV) {
+        // Bisa di-update tanpa batas jika ID kartu yang sama disubmit ulang
         await env.KANGREVIEW_KV.put(cardId, cardData);
       }
 
@@ -135,13 +136,13 @@ export async function onRequest(context) {
       
       resultHtml = `
         <div class="bg-emerald-900/40 border border-emerald-500/50 p-4 rounded-xl mb-6 text-center">
-            <p class="text-xs text-emerald-400 font-semibold mb-1">KARTU BERHASIL DIAKTIFKAN!</p>
+            <p class="text-xs text-emerald-400 font-semibold mb-1">DATA BISNIS BERHASIL DISIMPAN / DI-UPDATE!</p>
             <p class="text-sm font-bold text-white mb-3">${name}</p>
             <div class="bg-white p-3 inline-block rounded-xl mb-3 shadow-md">
                 <img id="qr-image" src="" alt="QR Code" class="w-36 h-36 mx-auto">
             </div>
             <div class="mb-3">
-                <input type="text" readonly value="${generatedLink}" id="gen-link" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-center text-slate-300 select-all">
+                <input type="text" readonly value="${generatedLink}" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-center text-slate-300 select-all">
             </div>
             <a id="download-btn" download="QR-${name.replace(/[^a-zA-Z0-9]/g, '_')}.png" class="block w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2.5 rounded-lg transition text-center">Download QR Code (PNG)</a>
         </div>
@@ -162,30 +163,40 @@ export async function onRequest(context) {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Portal Reseller - Aktivasi Kartu</title>
+        <title>Portal Reseller - Pendaftaran & Update Bisnis</title>
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
         <div class="max-w-md w-full bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">
-            <h1 class="text-xl font-bold mb-1">Portal Reseller</h1>
-            <p class="text-slate-400 text-sm mb-6">Aktivasi Kartu Klien</p>
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h1 class="text-xl font-bold">Portal Reseller</h1>
+                    <p class="text-slate-400 text-xs">Daftar & Update Bisnis Google Review</p>
+                </div>
+                <a href="/admin" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg text-slate-200 transition">Admin Utama</a>
+            </div>
             
             ${resultHtml}
 
             <form method="POST" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Nama Toko / Cafe / Bisnis</label>
-                    <input type="text" name="name" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Contoh: Mesti Coffee">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">ID / Kode pada Kartu Fisik</label>
+                    <input type="text" name="cardid" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Contoh: card01 atau kode dari kartu">
+                    <p class="text-[10px] text-slate-400 mt-1">Jika kartu sudah pernah terdaftar, input ID yang sama untuk meng-update nama/alamat/link bisnis.</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Nama Bisnis / Toko / Cafe</label>
+                    <input type="text" name="name" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Contoh: Kedai Kopi Mantap (Cabang Baru)">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Nomor WhatsApp Owner (Opsional)</label>
-                    <input type="text" name="whatsapp" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Contoh: 08123456789">
+                    <input type="text" name="whatsapp" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Contoh: 08123456789 (Kosongkan jika ingin dikamuflase)">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Link Google Review Klien</label>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Link Google Review Asli</label>
                     <input type="url" name="greview" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="https://g.page/r/...">
                 </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-3 rounded-xl transition">Aktifkan Kartu & Buat QR</button>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-3 rounded-xl transition">Simpan / Update Data Bisnis</button>
             </form>
         </div>
     </body>
@@ -194,5 +205,35 @@ export async function onRequest(context) {
     return new Response(html, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
   }
 
-  return new Response('Halaman tidak ditemukan', { status: 404 });
+  // 3. HALAMAN ADMIN UTAMA (/admin atau root /)
+  const adminHtml = `<!DOCTYPE html>
+  <html lang="id">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Admin Utama - KangReview</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
+      <div class="max-w-md w-full bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700 text-center">
+          <div class="mb-6">
+              <span class="bg-blue-900/50 text-blue-400 text-xs font-semibold px-3 py-1 rounded-full border border-blue-500/30">Pusat Kendali</span>
+              <h1 class="text-2xl font-bold mt-2">Admin Utama</h1>
+              <p class="text-slate-400 text-sm">Kelola sistem, reseller, dan database kartu review.</p>
+          </div>
+          
+          <div class="space-y-3">
+              <a href="/reseller" class="block w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl transition text-center">Buka Portal Reseller</a>
+              <div class="p-4 bg-slate-900 rounded-xl border border-slate-700 text-left text-xs text-slate-300 space-y-2">
+                  <p class="font-semibold text-slate-200">📌 Panduan Sistem:</p>
+                  <p>• <b>Admin & Reseller</b> menggunakan halaman <code>/reseller</code> untuk mendaftarkan atau meng-update data bisnis klien kapan saja tanpa batas.</p>
+                  <p>• <b>Bintang 4-5</b> otomatis meluncur mulus ke Google Review asli.</p>
+                  <p>• <b>Bintang 1-3</b> masuk ke WhatsApp owner. Jika nomor WA kosong, sistem otomatis mengaktifkan mode kamuflase (alert terima kasih ramah).</p>
+              </div>
+          </div>
+      </div>
+  </body>
+  </html>`;
+
+  return new Response(adminHtml, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
 }
