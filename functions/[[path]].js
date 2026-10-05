@@ -3,7 +3,7 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  // 1. HALAMAN UTAMA / REDIRECT KARTU (/r/id_kartu)
+  // 1. HALAMAN KLIEN / REVIEW (/r/id_kartu)
   if (path.startsWith('/r/')) {
     const cardId = path.split('/')[2];
     if (!cardId) return new Response('Kartu tidak ditemukan', { status: 404 });
@@ -100,7 +100,7 @@ export async function onRequest(context) {
                 }
 
                 if (ownerWhatsApp) {
-                    const message = encodeURIComponent("Halo Kak, saya memberikan rating " + selectedRating + " bintang.\nMasukan: " + comment);
+                    const message = encodeURIComponent("Halo Kak, saya memberikan rating " + selectedRating + " bintang.\\nMasukan: " + comment);
                     let waNumber = ownerWhatsApp.replace(/^0/, '62');
                     window.location.href = "https://wa.me/" + waNumber + "?text=" + message;
                 } else {
@@ -117,7 +117,7 @@ export async function onRequest(context) {
 
   // 2. HALAMAN PORTAL RESELLER (/reseller)
   if (path === '/reseller') {
-    let alertMessage = '';
+    let resultHtml = '';
     if (request.method === 'POST') {
       const formData = await request.formData();
       const name = formData.get('name');
@@ -132,7 +132,29 @@ export async function onRequest(context) {
       }
 
       const generatedLink = `${url.origin}/r/${cardId}`;
-      alertMessage = `Kartu berhasil diaktifkan! Link Klien: ${generatedLink}`;
+      
+      resultHtml = `
+        <div class="bg-emerald-900/40 border border-emerald-500/50 p-4 rounded-xl mb-6 text-center">
+            <p class="text-xs text-emerald-400 font-semibold mb-1">KARTU BERHASIL DIAKTIFKAN!</p>
+            <p class="text-sm font-bold text-white mb-3">${name}</p>
+            <div class="bg-white p-3 inline-block rounded-xl mb-3 shadow-md">
+                <img id="qr-image" src="" alt="QR Code" class="w-36 h-36 mx-auto">
+            </div>
+            <div class="mb-3">
+                <input type="text" readonly value="${generatedLink}" id="gen-link" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-center text-slate-300 select-all">
+            </div>
+            <a id="download-btn" download="QR-${name.replace(/[^a-zA-Z0-9]/g, '_')}.png" class="block w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2.5 rounded-lg transition text-center">Download QR Code (PNG)</a>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+        <script>
+            QRCode.toDataURL("${generatedLink}", { width: 300, margin: 2 }, function (err, urlData) {
+                if (!err) {
+                    document.getElementById('qr-image').src = urlData;
+                    document.getElementById('download-btn').href = urlData;
+                }
+            });
+        </script>
+      `;
     }
 
     const html = `<!DOCTYPE html>
@@ -148,7 +170,7 @@ export async function onRequest(context) {
             <h1 class="text-xl font-bold mb-1">Portal Reseller</h1>
             <p class="text-slate-400 text-sm mb-6">Aktivasi Kartu Klien</p>
             
-            ${alertMessage ? `<div class="bg-emerald-900/50 border border-emerald-500 text-emerald-200 text-sm p-3 rounded-xl mb-4 break-all">${alertMessage}</div>` : ''}
+            ${resultHtml}
 
             <form method="POST" class="space-y-4">
                 <div>
