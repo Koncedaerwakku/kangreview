@@ -32,7 +32,7 @@ export async function onRequest(context) {
       '<div class="max-w-md w-full bg-white rounded-3xl shadow-xl p-6 border border-slate-200 text-center">' +
       logoHtml +
       '<h1 class="text-xl font-bold mb-1 text-slate-900">' + card.name + '</h1>' +
-      '<p class="text-slate-500 text-xs mb-6">5 detik masukan dari kamu berharga banget buat meningkatkan kualitas layanan kami 😊</p>' +
+      '<p class="text-slate-500 text-xs mb-6">Luangkan Sekelumit Waktu Kamu Untuk Berbagi Pengalaman Bersama Kami 😊</p>' +
       '<div id="rating-section"><div class="flex justify-center gap-2 mb-2 text-3xl cursor-pointer" id="star-container">' +
       '<i class="far fa-star text-amber-400" data-rating="1"></i><i class="far fa-star text-amber-400" data-rating="2"></i><i class="far fa-star text-amber-400" data-rating="3"></i><i class="far fa-star text-amber-400" data-rating="4"></i><i class="far fa-star text-amber-400" data-rating="5"></i>' +
       '</div><p id="rating-text" class="text-xs font-semibold text-amber-500 mb-6 h-5"></p></div>' +
