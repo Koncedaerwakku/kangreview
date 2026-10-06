@@ -127,20 +127,21 @@ export async function onRequest(context) {
           const formData = await request.formData();
           const actionType = formData.get('action_type');
 
-          if (actionType === 'verify_pin') {
+                    if (actionType === 'verify_pin') {
             const targetId = formData.get('card_id');
             const enteredPin = formData.get('pin_check');
             const cardDataStr = await env.KANGREVIEW_KV.get("card_" + targetId);
             if (cardDataStr) {
               const parsed = JSON.parse(cardDataStr);
-              if (parsed.pin && parsed.pin === enteredPin) {
-                // PIN cocok, arahkan ke form edit dengan parameter
+              // Jika toko lama belum punya PIN, ATAU PIN yang dimasukkan cocok, izinkan masuk!
+              if (!parsed.pin || parsed.pin === enteredPin) {
                 return new Response(null, { status: 302, headers: { 'Location': '/reseller?edit=' + targetId + '&verified=true' } });
               } else {
-                errorPinMsg = '<div class="bg-red-900/40 border border-red-500/50 p-3 rounded-xl mb-4 text-xs text-red-300 text-center">PIN Keamanan Salah! Hubungi pemilik bisnis jika lupa.</div>';
+                errorPinMsg = '<div class="bg-red-900/40 border border-red-500/50 p-3 rounded-xl mb-4 text-xs text-red-300 text-center">PIN Keamanan Salah! Coba masukkan 1234 untuk data lama.</div>';
               }
             }
-          } else {
+          }
+
             // Simpan Data Baru atau Update Data Lama
             const rawCardId = formData.get('cardid') ? formData.get('cardid').trim() : '';
             const name = formData.get('name');
