@@ -150,7 +150,13 @@ export async function onRequest(context) {
             const rawCardId = formData.get('cardid') ? formData.get('cardid').trim() : '';
             const name = formData.get('name');
             const whatsapp = formData.get('whatsapp');
-            const greview = formData.get('greview');
+            let greview = formData.get('greview') ? formData.get('greview').trim() : '';
+            
+            // Otomatis tambahkan https:// jika user lupa mengetiknya di awal
+            if (greview && !greview.startsWith('http://') && !greview.startsWith('https://')) {
+              greview = 'https://' + greview;
+            }
+
             const logo = formData.get('logo') ? formData.get('logo').trim() : '';
             const pin = formData.get('pin') ? formData.get('pin').trim() : '1234';
             
@@ -216,7 +222,6 @@ export async function onRequest(context) {
         } catch (e) {}
       }
 
-      // Tombol Hapus Tambahan khusus saat mode edit aktif
       let deleteSectionHtml = '';
       if (editCardId && url.searchParams.get('verified') === 'true') {
         deleteSectionHtml = '<div class="mt-6 pt-4 border-t border-red-500/30 text-center">' +
@@ -238,7 +243,7 @@ export async function onRequest(context) {
       '<div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Nama Bisnis / Toko</label><input type="text" name="name" required value="' + (existingCard ? existingCard.name : '') + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Contoh: Mesti Coffee"></div>' +
       '<div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Upload Logo Toko (Pilih dari HP)</label><input type="file" id="upload-file" accept="image/*" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500"><input type="hidden" name="logo" id="logo-base64" value="' + (existingCard ? existingCard.logo : '') + '"></div>' +
       '<div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Nomor WhatsApp Owner (Untuk Bintang 1-3)</label><input type="text" name="whatsapp" value="' + (existingCard ? (existingCard.whatsapp || '') : '') + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="0821..."></div>' +
-      '<div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Link Google Review / Maps Asli</label><input type="url" name="greview" required value="' + (existingCard ? (existingCard.greview || '') : '') + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="https://g.page/r/..."></div>' +
+      '<div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Link Google Review / Maps Asli</label><input type="text" name="greview" required value="' + (existingCard ? (existingCard.greview || '') : '') + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="https://search.google.com/local/writereview?placeid=..."></div>' +
       '<div><label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">PIN Keamanan Bisnis (4 Angka)</label><input type="text" name="pin" required maxlength="6" value="' + (existingCard ? (existingCard.pin || '1234') : '1234') + '" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Contoh: 1234"></div>' +
       '<button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-3 rounded-xl transition">' + (editCardId ? 'Perbarui Data Bisnis' : 'Simpan & Generate QR Code') + '</button>' +
       (editCardId ? '<a href="/reseller" class="block text-center text-xs text-slate-400 hover:text-white mt-2">Batal Edit</a>' : '') +
