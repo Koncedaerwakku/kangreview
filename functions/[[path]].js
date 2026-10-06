@@ -67,11 +67,13 @@ export async function onRequest(context) {
       '}' +
       'document.getElementById("submit-feedback").addEventListener("click", function() {' +
       '  const comment = document.getElementById("review-comment").value.trim();' +
-      '  if (ownerWhatsApp) {' +
+      '  if (ownerWhatsApp && ownerWhatsApp.trim() !== "") {' +
       '    const message = encodeURIComponent("Halo Kak, saya memberikan rating " + selectedRating + " bintang.\\nMasukan: " + (comment || "(Tanpa catatan)"));' +
       '    let waNumber = ownerWhatsApp.replace(/^0/, "62");' +
       '    window.location.href = "https://wa.me/" + waNumber + "?text=" + message;' +
-      '  } else { alert("Terima kasih banyak atas masukan berharga Anda!"); location.reload(); }' +
+      '  } else {' +
+      '    feedbackForm.innerHTML = \'<div class="bg-emerald-50 text-emerald-700 p-4 rounded-2xl text-center"><i class="fa-solid fa-circle-check text-2xl mb-2"></i><p class="font-bold text-sm">Terima Kasih Atas Masukan Anda!</p><p class="text-xs text-slate-500 mt-1">Masukan ini sangat berarti untuk kemajuan pelayanan kami.</p></div>\';' +
+      '  }' +
       '});' +
       '</script></body></html>';
       return new Response(html, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
@@ -122,36 +124,32 @@ export async function onRequest(context) {
       let errorPinMsg = '';
 
       if (env && env.KANGREVIEW_KV) {
-        // Jika mode edit atau verifikasi PIN dikirim
         if (request.method === 'POST') {
           const formData = await request.formData();
           const actionType = formData.get('action_type');
 
-                    if (actionType === 'verify_pin') {
+          if (actionType === 'verify_pin') {
             const targetId = formData.get('card_id');
             const enteredPin = formData.get('pin_check');
             const cardDataStr = await env.KANGREVIEW_KV.get("card_" + targetId);
             if (cardDataStr) {
               const parsed = JSON.parse(cardDataStr);
-              // Jika toko lama belum punya PIN, ATAU PIN yang dimasukkan cocok, izinkan masuk!
               if (!parsed.pin || parsed.pin === enteredPin) {
                 return new Response(null, { status: 302, headers: { 'Location': '/reseller?edit=' + targetId + '&verified=true' } });
               } else {
                 errorPinMsg = '<div class="bg-red-900/40 border border-red-500/50 p-3 rounded-xl mb-4 text-xs text-red-300 text-center">PIN Keamanan Salah! Coba masukkan 1234 untuk data lama.</div>';
               }
             }
-          }
-            // Simpan Data Baru atau Update Data Lama
+          } else {
             const rawCardId = formData.get('cardid') ? formData.get('cardid').trim() : '';
             const name = formData.get('name');
             const whatsapp = formData.get('whatsapp');
             const greview = formData.get('greview');
             const logo = formData.get('logo') ? formData.get('logo').trim() : '';
-            const pin = formData.get('pin') ? formData.get('pin').trim() : '1234'; // Default PIN jika kosong
+            const pin = formData.get('pin') ? formData.get('pin').trim() : '1234';
             
             const cardId = rawCardId ? rawCardId.replace(/[^a-zA-Z0-9_-]/g, '') : Math.random().toString(36).substring(2, 8);
             
-            // Cek jika sedang mengedit, pertahankan logo lama jika tidak di-upload baru
             let finalLogo = logo;
             if (!finalLogo && editCardId) {
               const oldData = await env.KANGREVIEW_KV.get("card_" + cardId);
@@ -173,7 +171,7 @@ export async function onRequest(context) {
               '</div><script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>' +
               '<script>QRCode.toDataURL("' + generatedLink + '", { width: 300, margin: 2 }, function (err, urlData) { if (!err) { document.getElementById("qr-image").src = urlData; document.getElementById("download-btn").href = urlData; } });</script>';
             
-            editCardId = ''; // Reset edit mode setelah simpan
+            editCardId = '';
           }
         }
 
@@ -183,7 +181,6 @@ export async function onRequest(context) {
         }
       }
 
-      // Ambil daftar semua kartu milik reseller ini untuk ditampilkan di bawah
       let listCardsHtml = '';
       if (env && env.KANGREVIEW_KV) {
         try {
@@ -205,7 +202,7 @@ export async function onRequest(context) {
             items.forEach(item => {
               listCardsHtml += '<div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 flex justify-between items-center">' +
                 '<div><p class="text-xs font-bold text-white">' + item.name + '</p><p class="text-[10px] text-slate-400">ID: ' + item.id + '</p></div>' +
-                '<button onclick="openPinModal(\'' + item.id + '\')" class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition">Edit Link/Maps</button>' +
+                '<button type="button" onclick="openPinModal(\'' + item.id + '\')" class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition">Edit Link/Maps</button>' +
                 '</div>';
             });
             listCardsHtml += '</div></div>';
@@ -231,7 +228,6 @@ export async function onRequest(context) {
       '</form>' +
       listCardsHtml +
       '</div>' +
-      // Modal Popup Input PIN untuk Verifikasi Edit
       '<div id="pinModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">' +
       '<div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl max-w-sm w-full text-center">' +
       '<h3 class="text-sm font-bold text-white mb-2">Masukkan PIN Keamanan Bisnis</h3>' +
