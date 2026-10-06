@@ -113,7 +113,7 @@ export async function onRequest(context) {
       return new Response(html, { headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
     }
 
-    // 3. PORTAL RESELLER (TAMBAH, EDIT, & PROTEKSI PIN)
+    // 3. PORTAL RESELLER (TAMBAH, EDIT, VERIFIKASI PIN, & HAPUS)
     if (path === '/reseller') {
       const activeUser = getCookie('reseller_user');
       if (!activeUser) return new Response(null, { status: 302, headers: { 'Location': '/reseller-login' } });
@@ -139,6 +139,12 @@ export async function onRequest(context) {
               } else {
                 errorPinMsg = '<div class="bg-red-900/40 border border-red-500/50 p-3 rounded-xl mb-4 text-xs text-red-300 text-center">PIN Keamanan Salah! Coba masukkan 1234 untuk data lama.</div>';
               }
+            }
+          } else if (actionType === 'delete_card') {
+            const targetId = formData.get('card_id');
+            if (targetId) {
+              await env.KANGREVIEW_KV.delete("card_" + targetId);
+              return new Response(null, { status: 302, headers: { 'Location': '/reseller' } });
             }
           } else {
             const rawCardId = formData.get('cardid') ? formData.get('cardid').trim() : '';
@@ -210,6 +216,17 @@ export async function onRequest(context) {
         } catch (e) {}
       }
 
+      // Tombol Hapus Tambahan khusus saat mode edit aktif
+      let deleteSectionHtml = '';
+      if (editCardId && url.searchParams.get('verified') === 'true') {
+        deleteSectionHtml = '<div class="mt-6 pt-4 border-t border-red-500/30 text-center">' +
+          '<form method="POST" onsubmit="return confirm(\'Yakin ingin menghapus bisnis ini secara permanen?\');">' +
+          '<input type="hidden" name="action_type" value="delete_card">' +
+          '<input type="hidden" name="card_id" value="' + editCardId + '">' +
+          '<button type="submit" class="w-full bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/50 text-xs font-semibold py-2.5 rounded-xl transition">Hapus Bisnis Ini Secara Permanen</button>' +
+          '</form></div>';
+      }
+
       const html = '<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Portal Reseller</title><script src="https://cdn.tailwindcss.com"></script></head>' +
       '<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">' +
       '<div class="max-w-md w-full bg-slate-800 rounded-2xl shadow-xl p-6 border border-slate-700">' +
@@ -226,6 +243,7 @@ export async function onRequest(context) {
       '<button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-3 rounded-xl transition">' + (editCardId ? 'Perbarui Data Bisnis' : 'Simpan & Generate QR Code') + '</button>' +
       (editCardId ? '<a href="/reseller" class="block text-center text-xs text-slate-400 hover:text-white mt-2">Batal Edit</a>' : '') +
       '</form>' +
+      deleteSectionHtml +
       listCardsHtml +
       '</div>' +
       '<div id="pinModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">' +
